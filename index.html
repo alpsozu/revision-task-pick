@@ -1,100 +1,117 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>What should I revise next?</title>
-  <style>
-    body {
-      max-width: 36rem;
-      margin: 3rem auto;
-      padding: 0 1rem;
-      font: 1rem/1.5 system-ui, sans-serif;
-      color: #172d3d;
-    }
-    label { display: block; margin: 1rem 0; }
-    select, button { padding: .4rem; font: inherit; }
-    button { margin-top: 1rem; cursor: pointer; }
-    #result { border-left: 4px solid #287268; padding-left: 1rem; }
-  </style>
-</head>
-<body>
-  <main>
-    <h1>What should I revise next?</h1>
+<style>
+  * {
+    box-sizing: border-box;
+  }
 
-    <form id="picker">
-      <label>
-        How much time do you have?
-        <select id="minutes">
-          <option value="5">5 minutes</option>
-          <option value="10">10 minutes</option>
-          <option value="15" selected>15 minutes</option>
-          <option value="20">20 minutes</option>
-        </select>
-      </label>
+  body {
+    min-height: 100vh;
+    margin: 0;
+    padding: clamp(1rem, 6vw, 5rem) 1rem;
+    font-family: system-ui, sans-serif;
+    line-height: 1.5;
+    color: #202943;
+    background-color: #eaf0ff;
+    background-image:
+      radial-gradient(ellipse at top left, #bfdcff, transparent 65%),
+      radial-gradient(ellipse at bottom right, #d9c6fc, transparent 65%);
+  }
 
-      <fieldset id="ratings">
-        <legend>How confident are you in each topic?</legend>
-        <p>1 = least confident · 5 = most confident</p>
-      </fieldset>
+  main {
+    width: 100%;
+    max-width: 39rem;
+    margin: 0 auto;
+    padding: clamp(1.25rem, 5vw, 2.75rem);
+    background: white;
+    border-top: 5px solid #6654ce;
+    border-radius: 1.25rem;
+    box-shadow: 0 16px 45px rgba(52, 55, 112, 0.14);
+  }
 
-      <button type="submit">Suggest a task</button>
-    </form>
+  h1 {
+    margin: 0 0 1.5rem;
+    color: #282650;
+    font-size: clamp(1.8rem, 5vw, 2.6rem);
+    line-height: 1.12;
+    letter-spacing: -0.04em;
+  }
 
-    <p id="result" role="status"></p>
-  </main>
+  label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    font-weight: 500;
+  }
 
-  <script>
-    const tasks = [
-      { topic: "Action and Error", minutes: 10,
-        activity: "Write one example of a slip and one of a mistake." },
-      { topic: "Cognitive Load", minutes: 15,
-        activity: "Sketch a busy screen and remove two things that distract you." },
-      { topic: "Conversational Interfaces", minutes: 20,
-        activity: "Write a short dialogue where an app clears up an unclear request." }
-    ];
+  select {
+    padding: 0.5rem;
+    border: 1px solid #aeb8ce;
+    border-radius: 0.55rem;
+    background: white;
+    color: #202943;
+    font: inherit;
+    cursor: pointer;
+  }
 
-    const ratings = document.querySelector("#ratings");
-    const picker = document.querySelector("#picker");
-    const result = document.querySelector("#result");
+  fieldset {
+    min-width: 0;
+    margin: 1.25rem 0;
+    padding: 0.65rem 1rem;
+    background: #f6f5ff;
+    border: 1px solid #d7d3ef;
+    border-radius: 0.85rem;
+  }
 
-    for (const topic of new Set(tasks.map(task => task.topic))) {
-      const label = document.createElement("label");
-      label.textContent = topic + " ";
-      const select = document.createElement("select");
-      select.name = topic;
+  legend {
+    max-width: 100%;
+    padding: 0 0.35rem;
+    color: #453a83;
+    font-weight: 650;
+  }
 
-      for (let score = 1; score <= 5; score++) {
-        select.add(new Option(score, score));
-      }
+  fieldset p {
+    margin: 0.25rem 0 0.65rem;
+    color: #535b73;
+    font-size: 0.9rem;
+  }
 
-      select.value = "3";
-      label.append(select);
-      ratings.append(label);
-    }
+  fieldset label + label {
+    border-top: 1px solid #e2dff1;
+  }
 
-    picker.addEventListener("input", () => {
-      result.textContent = "Choices updated. Select “Suggest a task” to check again.";
-    });
+  button {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 0;
+    border-radius: 0.7rem;
+    background: linear-gradient(110deg, #374fae, #6543ae);
+    color: white;
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+  }
 
-    picker.addEventListener("submit", event => {
-      event.preventDefault();
-      const available = Number(document.querySelector("#minutes").value);
-      const scores = new FormData(picker);
-      const confidence = task => Number(scores.get(task.topic));
-      const options = tasks.filter(task => task.minutes <= available);
+  button:hover {
+    background: #443591;
+  }
 
-      if (options.length === 0) {
-        const shortest = Math.min(...tasks.map(task => task.minutes));
-        result.textContent = `You chose ${available} minutes. The shortest task takes ${shortest} minutes.`;
-        return;
-      }
+  button:focus-visible,
+  select:focus-visible {
+    outline: 3px solid #345bd6;
+    outline-offset: 3px;
+  }
 
-      options.sort((a, b) => confidence(a) - confidence(b) || a.minutes - b.minutes);
-      const best = options[0];
-      result.textContent = `${best.activity} You rated ${best.topic} ${confidence(best)}/5. ` +
-        `This ${best.minutes}-minute task fits your ${available} minutes.`;
-    });
-  </script>
-</body>
-</html>
+  #result {
+    margin: 0;
+  }
+
+  #result:not(:empty) {
+    margin-top: 1.25rem;
+    padding: 1rem;
+    background: #edf9f4;
+    color: #204e43;
+    border-left: 4px solid #31806a;
+    border-radius: 0.5rem;
+  }
+</style>
