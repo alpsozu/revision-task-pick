@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>What should I revise next?</title>
+  <style>
+    body {
+      max-width: 36rem;
+      margin: 3rem auto;
+      padding: 0 1rem;
+      font: 1rem/1.5 system-ui, sans-serif;
+      color: #172d3d;
+    }
+    label { display: block; margin: 1rem 0; }
+    select, button { padding: .4rem; font: inherit; }
+    button { margin-top: 1rem; cursor: pointer; }
+    #result { border-left: 4px solid #287268; padding-left: 1rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>What should I revise next?</h1>
+
+    <form id="picker">
+      <label>
+        How much time do you have?
+        <select id="minutes">
+          <option value="5">5 minutes</option>
+          <option value="10">10 minutes</option>
+          <option value="15" selected>15 minutes</option>
+          <option value="20">20 minutes</option>
+        </select>
+      </label>
+
+      <fieldset id="ratings">
+        <legend>How confident are you in each topic?</legend>
+        <p>1 = least confident · 5 = most confident</p>
+      </fieldset>
+
+      <button type="submit">Suggest a task</button>
+    </form>
+
+    <p id="result" role="status"></p>
+  </main>
+
+  <script>
+    const tasks = [
+      { topic: "Action and Error", minutes: 10,
+        activity: "Write one example of a slip and one of a mistake." },
+      { topic: "Cognitive Load", minutes: 15,
+        activity: "Sketch a busy screen and remove two things that distract you." },
+      { topic: "Conversational Interfaces", minutes: 20,
+        activity: "Write a short dialogue where an app clears up an unclear request." }
+    ];
+
+    const ratings = document.querySelector("#ratings");
+    const picker = document.querySelector("#picker");
+    const result = document.querySelector("#result");
+
+    for (const topic of new Set(tasks.map(task => task.topic))) {
+      const label = document.createElement("label");
+      label.textContent = topic + " ";
+      const select = document.createElement("select");
+      select.name = topic;
+
+      for (let score = 1; score <= 5; score++) {
+        select.add(new Option(score, score));
+      }
+
+      select.value = "3";
+      label.append(select);
+      ratings.append(label);
+    }
+
+    picker.addEventListener("input", () => {
+      result.textContent = "Choices updated. Select “Suggest a task” to check again.";
+    });
+
+    picker.addEventListener("submit", event => {
+      event.preventDefault();
+      const available = Number(document.querySelector("#minutes").value);
+      const scores = new FormData(picker);
+      const confidence = task => Number(scores.get(task.topic));
+      const options = tasks.filter(task => task.minutes <= available);
+
+      if (options.length === 0) {
+        const shortest = Math.min(...tasks.map(task => task.minutes));
+        result.textContent = `You chose ${available} minutes. The shortest task takes ${shortest} minutes.`;
+        return;
+      }
+
+      options.sort((a, b) => confidence(a) - confidence(b) || a.minutes - b.minutes);
+      const best = options[0];
+      result.textContent = `${best.activity} You rated ${best.topic} ${confidence(best)}/5. ` +
+        `This ${best.minutes}-minute task fits your ${available} minutes.`;
+    });
+  </script>
+</body>
+</html>
